@@ -1,0 +1,38 @@
+name: Sleeper Lineup Check
+
+on:
+  workflow_dispatch: {}  # manual "Run workflow" button in the Actions tab
+  # Once your secrets (below) are set, uncomment this to run automatically
+  # every Tuesday and Thursday morning:
+  # schedule:
+  #   - cron: '0 13 * * 2'  # Tuesday 13:00 UTC (~9am ET)
+  #   - cron: '0 18 * * 4'  # Thursday 18:00 UTC (~2pm ET)
+
+jobs:
+  lineup-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # needed for actions/checkout to clone the repo
+      issues: write    # needed to post the weekly summary as an Issue
+    defaults:
+      run:
+        working-directory: sleeper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run lineup check
+        env:
+          SLEEPER_LEAGUE_ID: ${{ secrets.SLEEPER_LEAGUE_ID }}
+          SLEEPER_USERNAME: ${{ secrets.SLEEPER_USERNAME }}
+          LEAGUE_YEAR: '2026'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # built in, nothing to create yourself
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}  # optional — see sleeper/README.md
+          AI_MODEL: 'openai/gpt-oss-120b'
+        run: python lineup_check.py
