@@ -21,17 +21,23 @@ the same reason), this reuses a session cookie from a browser where
 you're already logged in:
 
 1. Log into [fantasy.formula1.com](https://fantasy.formula1.com/en) in
-   your browser.
+   your browser, and go into the actual **team-picker app** (where you
+   drag and drop drivers) — the cookie below is only set once you're in
+   there, not just on the general logged-in homepage.
 2. Open DevTools (right-click → Inspect) → **Application** tab (Chrome)
    or **Storage** tab (Firefox) → **Cookies** → `https://fantasy.formula1.com`.
-3. Find the cookie named
-   `_playon_whitelabel_session_f1_backend_production` and copy its
-   value.
+3. Find the cookie named **`F1_FANTASY_007`** and copy its value.
 
-This is a session credential — treat it like a password, and expect it
-to expire eventually (how often isn't confirmed yet — if the workflow
-starts failing with an auth error, repeat this step). It goes into a
-GitHub secret in step 3, never into the code.
+This is a session credential — treat it like a password. **It's
+also short-lived: decoding its JWT payload shows a 4-day expiry from
+when it's issued** (`exp` minus `iat` = exactly 345,600 seconds), a lot
+tighter than the ESPN version's ~1-year cookie. Practically, that means
+this isn't a "set once for the season" secret — plan to repeat this step
+every few days you want the check actively running, realistically
+right before each race weekend rather than continuously. If the
+workflow starts failing with an auth error, this is almost certainly
+why — repeat this step to refresh it. It goes into a GitHub secret in
+step 3 below, never into the code.
 
 ## 2. Get your league ID
 

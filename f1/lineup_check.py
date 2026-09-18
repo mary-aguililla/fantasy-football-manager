@@ -16,13 +16,13 @@ Data comes from three independent sources, each used for what it's
 actually good at:
   - fantasy-api.formula1.com — F1 Fantasy's own (undocumented) API.
     Used for your picked team and the full player/price pool. Auth is a
-    single session cookie you copy from your browser once you're logged
-    into fantasy.formula1.com — see the README. This deliberately never
-    calls F1's real username/password login endpoint, which is known to
-    trip Akamai's bot detection (CAPTCHA) when automated; reusing an
-    already-established browser session cookie sidesteps that entirely,
-    the same way the ESPN version reuses espn_s2/SWID instead of
-    scripting a login.
+    single session cookie (F1_FANTASY_007) you copy from your browser
+    once you're logged into fantasy.formula1.com's team-picker app — see
+    the README. This deliberately never calls F1's real username/password
+    login endpoint, which is known to trip Akamai's bot detection
+    (CAPTCHA) when automated; reusing an already-established browser
+    session cookie sidesteps that entirely, the same way the ESPN version
+    reuses espn_s2/SWID instead of scripting a login.
   - api.jolpi.ca (Jolpica-F1, the actively-maintained successor to the
     now-retired Ergast API) — free, public, no auth, no key. Used for
     the race calendar, qualifying deadline, circuit location, and recent
@@ -65,7 +65,14 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 AI_MODEL = os.environ.get("AI_MODEL", "openai/gpt-oss-120b")
 
 FANTASY_API_BASE = f"https://fantasy-api.formula1.com/f1/{FANTASY_API_VERSION}"
-FANTASY_SESSION_COOKIE_NAME = "_playon_whitelabel_session_f1_backend_production"
+# Confirmed against a real logged-in browser session (not from any
+# library source): F1 sets an F1_FANTASY_007 cookie once you're actually
+# inside the Fantasy team-picker app — a compact JWT whose payload is
+# just {"007": <your SubscriberId>, exp, iat, nbf}, distinct from the
+# heavier general-account login-session cookie F1's main site sets on
+# login. This is the one fantasy-api.formula1.com's authenticated
+# endpoints expect.
+FANTASY_SESSION_COOKIE_NAME = "F1_FANTASY_007"
 JOLPICA_BASE = "https://api.jolpi.ca/ergast/f1"
 # Jolpica asks that callers identify themselves with a real User-Agent
 # rather than a generic/default one, to help them keep the free API up.
@@ -82,14 +89,14 @@ _weather_cache = {}
 # ---- F1 Fantasy API (fantasy-api.formula1.com) ----
 
 def fantasy_session():
-    """A requests.Session carrying the one cookie F1 Fantasy's
-    authenticated endpoints need. This is copied by hand from a logged-in
-    browser (see README) rather than obtained by scripting F1's own
-    login flow — that flow is Akamai-bot-protected and known to CAPTCHA
-    programmatic attempts inconsistently, even when replaying a valid
-    cookie. A session cookie lifted from a real browser session sidesteps
-    that step entirely, the same way the ESPN version never scripts an
-    ESPN login and just reuses espn_s2/SWID."""
+    """A requests.Session carrying the one cookie (F1_FANTASY_007) F1
+    Fantasy's authenticated endpoints need. This is copied by hand from a
+    logged-in browser (see README) rather than obtained by scripting F1's
+    own login flow — that flow is Akamai-bot-protected and known to
+    CAPTCHA programmatic attempts inconsistently, even when replaying a
+    valid cookie. A session cookie lifted from a real browser session
+    sidesteps that step entirely, the same way the ESPN version never
+    scripts an ESPN login and just reuses espn_s2/SWID."""
     s = requests.Session()
     s.cookies.set(FANTASY_SESSION_COOKIE_NAME, F1_SESSION_COOKIE, domain="formula1.com")
     return s
