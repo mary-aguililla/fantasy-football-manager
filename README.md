@@ -1,25 +1,30 @@
 # fantasy-football-manager
 
-A weekly fantasy football lineup check that runs on GitHub Actions and
-posts its report as a GitHub Issue — no server, no hosting, no
-third-party email service. It flags bye weeks and injury tags on your
-starters, catches bench players who outproject a starter in an eligible
-slot, suggests waiver-wire upgrades, checks weather for outdoor games,
-and (optionally) generates plain-language reasoning for its suggestions
-via a free Groq API key.
+A fantasy sports team check that runs on GitHub Actions and posts its
+report as a GitHub Issue — no server, no hosting, no third-party email
+service. For the fantasy football variants, it flags bye weeks and
+injury tags on your starters, catches bench players who outproject a
+starter in an eligible slot, suggests waiver-wire upgrades, checks
+weather for outdoor games, and (optionally) generates plain-language
+reasoning for its suggestions via a free Groq API key.
 
-Two platform variants are included, each fully self-contained in its
+Three platform variants are included, each fully self-contained in its
 own folder:
 
-- **[`espn/`](espn/README.md)** — for ESPN Fantasy leagues, via the
-  `espn_api` Python library. Needs your league/team ID and a couple of
-  session cookies.
-- **[`sleeper/`](sleeper/README.md)** — for Sleeper leagues, via
-  Sleeper's public API. Needs only your league ID and username — no
-  login required. See that folder's README for how it differs from the
-  ESPN version (Sleeper's API doesn't publish real weekly projections,
-  ownership percentages, or defense-vs-position difficulty ranks, so a
-  few features are adapted or dropped there).
+- **[`espn/`](espn/README.md)** — for ESPN Fantasy football leagues, via
+  the `espn_api` Python library. Needs your league/team ID and a couple
+  of session cookies.
+- **[`sleeper/`](sleeper/README.md)** — for Sleeper fantasy football
+  leagues, via Sleeper's public API. Needs only your league ID and
+  username — no login required. See that folder's README for how it
+  differs from the ESPN version (Sleeper's API doesn't publish real
+  weekly projections, ownership percentages, or defense-vs-position
+  difficulty ranks, so a few features are adapted or dropped there).
+- **[`f1/`](f1/README.md)** — for F1 Fantasy
+  ([fantasy.formula1.com](https://fantasy.formula1.com/en)). Different
+  cadence (race weekends, not weekly) and a different auth story — see
+  that folder's README, including which fields are still provisional
+  since F1 Fantasy has no public API or documentation to build against.
 
 ## Quick start
 
@@ -30,11 +35,12 @@ own folder:
 4. Run the matching workflow once manually (**Actions** tab → pick the
    workflow → **Run workflow**) to confirm it works.
 5. Uncomment the `schedule:` block in that workflow file to have it run
-   automatically every Tuesday and Thursday during the season.
+   automatically (every Tuesday and Thursday for football; daily for
+   F1 — see [`f1/README.md`](f1/README.md) for why).
 
-If you only play on one platform, feel free to delete the folder and
-workflow file you don't need — the other one only runs via manual
-dispatch by default (no schedule), so leaving both in place doesn't
+If you only play on one platform, feel free to delete the folders and
+workflow files you don't need — every variant only runs via manual
+dispatch by default (no schedule), so leaving them all in place doesn't
 cause anything to run on its own.
 
 ## Why GitHub Issues instead of email

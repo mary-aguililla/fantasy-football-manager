@@ -1,0 +1,41 @@
+name: F1 Fantasy Team Check
+
+on:
+  workflow_dispatch: {}  # manual "Run workflow" button in the Actions tab
+  # F1 race weekends aren't weekly and the gaps between them vary (some
+  # are back-to-back), so unlike the NFL versions' fixed Tue/Thu cron,
+  # this runs daily and the script itself decides whether to actually
+  # post — it no-ops quietly unless the next qualifying deadline is
+  # within F1_DEADLINE_WINDOW_DAYS. Once your secrets (below) are set,
+  # uncomment this:
+  # schedule:
+  #   - cron: '0 9 * * *'  # daily at 9:00 UTC
+
+jobs:
+  team-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # needed for actions/checkout to clone the repo
+      issues: write    # needed to post the race-weekend summary as an Issue
+    defaults:
+      run:
+        working-directory: f1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run team check
+        env:
+          F1_SESSION_COOKIE: ${{ secrets.F1_SESSION_COOKIE }}
+          F1_LEAGUE_ID: ${{ secrets.F1_LEAGUE_ID }}
+          LEAGUE_YEAR: '2026'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # built in, nothing to create yourself
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}  # optional — see f1/README.md
+          AI_MODEL: 'openai/gpt-oss-120b'
+        run: python lineup_check.py
